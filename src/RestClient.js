@@ -12,7 +12,7 @@ class RestClient {
     constructor(options) {
         if (!options.token) throw new Error('RestClient requires a token!');
         if (typeof options.token !== 'string') throw new Error('Token must be a string!');
-        if (options.validiateToken && typeof options.validiateToken !== 'boolean') throw new Error('ValidiateToken must be a boolean!');
+        if (options.validiateToken && typeof options.validiateToken !== 'boolean') return throw new Error('ValidiateToken must be a boolean!');
 
         this.version = options.version.toString() || '10';
 
