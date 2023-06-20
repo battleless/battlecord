@@ -1,7 +1,8 @@
 const { RestClient } = require('./index.js');
+const config = require('./config.json');
 
 const REST = new RestClient({
-    token: '',
+    token: config.token,
     version: 10
 });
 
