@@ -18,7 +18,7 @@ class RestClient {
             throw new Error('Token must be a string!');
         }
 
-        this.version = options.version.toString() || '10';
+        this.version = options.version?.toString() || '10';
         this.token = options.token;
     }
     /**
@@ -33,7 +33,11 @@ class RestClient {
         }
 
         return fetch('https://discord.com/api/v' + this.version + path, options)
-            .then (res => res.json())
+            .then (res => {
+                if (options.method.toLowerCase() !== 'delete') {
+                    return res.json();
+                }
+            })
             .catch(err => {
                 throw new Error(err);
             });
