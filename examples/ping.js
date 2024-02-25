@@ -16,7 +16,7 @@ const REST = new RestClient({
     token: token
 });
 
-ws.on(Events.MessageCreate, async message => {
+ws.on(Events.MessageCreate, message => {
     if (message.author.bot) return;
     
     if (message.content === '!ping') {

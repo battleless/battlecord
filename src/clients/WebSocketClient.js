@@ -38,7 +38,7 @@ class WebSocketClient extends EventEmitter {
         });
 
         this.ws.once('close', (code, reason) => {
-            throw new Error(`WebSocket closed: ${reason ? `${reason} (${code})` : code}`);
+            throw new Error(`WebSocket closed: ${code}`);
         });
     }
     async identify() {
@@ -75,7 +75,7 @@ class WebSocketClient extends EventEmitter {
                         op: 1,
                         d: null
                     });
-                }, 30000);
+                }, message.d.heartbeat_interval);
 
                 break;
             }
@@ -87,11 +87,25 @@ class WebSocketClient extends EventEmitter {
             d
         } = message;
 
-        this.emit(t, d);
+        if (t === 'GUILD_CREATE' && this.cacheOptions.guilds) {
+            const guild = this.cache.guilds.get(d.id);
+
+            if (!guild || guild.available) {
+                this.emit(t, d);
+            }
+        } else {
+            this.emit(t, d);
+        }
 
         switch (t) {
             case 'READY': {
                 this.session = d;
+
+                if (this.cacheOptions.guilds) {
+                    for (const guild of d.guilds) {
+                        this.cache.guilds.set(guild.id, guild);
+                    }
+                }
                 
                 break;
             }

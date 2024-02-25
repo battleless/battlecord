@@ -1,0 +1,9 @@
+{
+  "name": "battlecord",
+  "main": "index.js",
+  "author": "battleless",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}
