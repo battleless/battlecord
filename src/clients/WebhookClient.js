@@ -14,23 +14,15 @@ class WebhookClient {
      *   // could also seperately supply the id and token
      * });
      */
-    constructor(options) {
-        if (options.url) {
-            if (typeof options.url !== 'string') {
-                throw new Error('URL must be a string!');
-            } else {
-                const array = options.url.replace('https://discord.com/api/webhooks/', '').split('/')
+    constructor({ url, id, token }) {
+        if (url) {
+            const array = options.url.replace('https://discord.com/api/webhooks/', '').split('/');
 
-                this.id = array[0]
-                this.token = array[1]
-            }
-        } else if (options.id && options.token) {
-            if (typeof options.id !== 'string' || typeof options.token !== 'string') {
-                throw new Error('ID and token must be strings!');
-            }
-
-            this.id = options.id;
-            this.token = options.token;
+            this.id = array[0];
+            this.token = array[1];
+        } else if (id && token) {
+            this.id = id;
+            this.token = token;
         } else {
             throw new Error('You must supply either a webhook URL or an ID and token!');
         }

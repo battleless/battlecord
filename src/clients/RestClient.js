@@ -9,17 +9,9 @@ class RestClient {
      *     token: 'token here'
      * });
      */
-    constructor(options) {
-        if (!options.token) {
-            throw new Error('RestClient requires a token!');
-        }
-
-        if (typeof options.token !== 'string') {
-            throw new Error('Token must be a string!');
-        }
-
-        this.version = options.version?.toString() || '10';
-        this.token = options.token;
+    constructor({ token, version = 10 }) {
+        this.token = token;
+        this.version = version;
     }
     /**
      * @param {string} path 

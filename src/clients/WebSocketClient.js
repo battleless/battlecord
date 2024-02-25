@@ -1,61 +1,56 @@
 const WebSocket = require('ws');
 
-class WebSocketClient {
-    constructor(options) {
-        if (!options.token) {
-            throw new Error('Token is required to connect to the gateway!');
-        } else if (typeof options.token !== 'string') {
-            throw new Error('Token must be a string!');
-        }
+const {
+    EventEmitter
+} = require('node:events');
 
-        if (options.version && typeof options.version !== 'number') {
-            throw new Error('Version must be a number!');
-        }
+class WebSocketClient extends EventEmitter {
+    constructor({ token, version = 10, intents = 0, presence = {}, cacheOptions = {} }) {
+        super();
 
-        if (options.intents) {
-            if (Array.isArray(options.intents) && options.intents.length > 0) {
-                options.intents = options.intents.reduce((acc, val) => acc + val);
-            } else if (typeof options.intents === 'number') {
-                options.intents = options.intents;
-            } else {
-                throw new Error('Intents must be a number or an array of numbers!');
-            }
-        } else {
-            this.intents = 0
-        }
+        this.token = token;
+        this.version = version;
+        this.intents = Array.isArray(intents) ? intents.reduce((a, b) => a + b) : intents;
+        this.presence = presence;
 
-        this.token = options.token;
-        this.version = options.version || 10;
-        this.intents = options.intents || 0;
+        this.cacheOptions = cacheOptions;
+
+        this.cache = {};
+        this.cache.guilds = new Map();
+        this.cache.messages = new Map();
+
+        this.session =  null;
 
         this.gatewayUrl = `wss://gateway.discord.gg/?v=${this.version}&encoding=json`;
-        this.emitHandlers = {};
 
         this.ws = new WebSocket(this.gatewayUrl);
 
-        this.ws.on('open', () => {
+        this.ws.once('open', () => {
             this.identify();
         });
 
         this.ws.on('message', data => {
             this.handleMessage(data);
         });
-        
-        this.ws.on('close', (code, reason) => {
-            console.log(`Gateway connection has closed! Reason: ${reason} (${code})`);
-            
-            process.exit(1);
+
+        this.ws.on('error', error => {
+            throw new Error(error);
+        });
+
+        this.ws.once('close', (code, reason) => {
+            throw new Error(`WebSocket closed: ${reason ? `${reason} (${code})` : code}`);
         });
     }
     async identify() {
-        this.send({
+        await this.send({
             op: 2,
             d: {
                 token: this.token,
                 intents: this.intents,
                 properties: {
                     $os: process.platform
-                }
+                },
+                presence: this.presence
             }
         });
     }
@@ -68,12 +63,15 @@ class WebSocketClient {
         switch (message.op) {
             case 0: {
                 this.handleDispatch(message);
-
+                
                 break;
             }
+            case 9: {
+                throw new Error('Invalid session!');
+            }
             case 10: {
-                setInterval(() => {
-                    this.send({
+                this.heartbeatInterval = setInterval(async () => {
+                    await this.send({
                         op: 1,
                         d: null
                     });
@@ -84,21 +82,38 @@ class WebSocketClient {
         }
     }
     handleDispatch(message) {
-        this.emit(message.t, message.d);
-    }
-    emit(event, data) {
-        if (this.emitHandlers[event]) {
-            for (const callback of this.emitHandlers[event]) {
-                callback(data);
+        const {
+            t,
+            d
+        } = message;
+
+        this.emit(t, d);
+
+        switch (t) {
+            case 'READY': {
+                this.session = d;
+                
+                break;
+            }
+            case 'MESSAGE_CREATE':
+            case 'MESSAGE_UPDATE':
+            case 'MESSAGE_DELETE': {
+                if (this.cacheOptions.messages) {
+                    this.cache.messages[t === 'MESSAGE_DELETE' ? 'delete' : 'set'](d.id, d);
+                }
+
+                break;
+            }
+            case 'GUILD_CREATE':
+            case 'GUILD_UPDATE':
+            case 'GUILD_DELETE': {
+                if (this.cacheOptions.guilds) {
+                    this.cache.guilds[t === 'GUILD_DELETE' ? 'delete' : 'set'](d.id, d);
+                }
+
+                break;
             }
         }
-    }
-    on(event, callback) {
-        if (!this.emitHandlers[event]) {
-            this.emitHandlers[event] = [];
-        }
-    
-        this.emitHandlers[event].push(callback);
     }
 }
 
