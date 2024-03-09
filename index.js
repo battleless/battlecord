@@ -1,12 +1,12 @@
-const RestClient = require('./src/clients/RestClient.js');
-const WebhookClient = require('./src/clients/WebhookClient.js');
-const WebSocketClient = require('./src/clients/WebSocketClient.js');
+import RestClient from './src/clients/RestClient.js';
+import WebhookClient from './src/clients/WebhookClient.js';
+import WebSocketClient from './src/clients/WebSocketClient.js';
 
-const ActivityTypes = require('./src/enums/ActivityTypes.js');
-const Intents = require('./src/enums/Intents.js');
-const Events = require('./src/enums/Events.js');
+import ActivityTypes from './src/enums/ActivityTypes.js';
+import Intents from './src/enums/Intents.js';
+import Events from './src/enums/Events.js';
 
-module.exports = {
+export {
     RestClient,
     WebhookClient,
     WebSocketClient,

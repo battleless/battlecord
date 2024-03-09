@@ -1,9 +1,11 @@
-const {
+import {
     RestClient
-} = require('../index.js');
+} from '../index.js';
 
-const REST = new RestClient({
-    token: 'bot token'
+const REST = new RestClient('bot token', {
+    version: 10
 });
 
-REST.get('/users/@me').then(console.log);
+REST.get('/users/@me')
+    .then(console.log)
+    .catch(console.error);

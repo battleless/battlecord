@@ -56,4 +56,4 @@ const Events = {
     AutoModerationActionExecution: 'AUTO_MODERATION_ACTION_EXECUTION',
 }
 
-module.exports = Events;
+export default Events;

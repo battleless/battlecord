@@ -7,4 +7,4 @@ const ActivityTypes = {
     Competing: 5
 }
 
-module.exports = ActivityTypes;
+export default ActivityTypes;

@@ -1,12 +1,12 @@
-const {
+import {
     WebSocketClient,
     Events
-} = require('../index.js');
+} from '../index.js';
 
-const ws = new WebSocketClient({
-    token: 'bot token'
-});
+const ws = new WebSocketClient();
 
 ws.on(Events.Ready, () => {
     console.log('WebSocket is ready!');
 });
+
+ws.connect('bot token');

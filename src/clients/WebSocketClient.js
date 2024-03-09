@@ -1,14 +1,15 @@
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
-const {
+import {
     EventEmitter
-} = require('node:events');
+} from 'node:events';
+
+import RestClient from './RestClient.js';
 
 class WebSocketClient extends EventEmitter {
-    constructor({ token, version = 10, intents = 0, presence = {}, cacheOptions = {} }) {
+    constructor({ version = 10, intents = 0, presence = {}, cacheOptions = {} }) {
         super();
 
-        this.token = token;
         this.version = version;
         this.intents = Array.isArray(intents) ? intents.reduce((a, b) => a + b) : intents;
         this.presence = presence;
@@ -19,9 +20,35 @@ class WebSocketClient extends EventEmitter {
         this.cache.guilds = new Map();
         this.cache.messages = new Map();
 
-        this.session =  null;
-
         this.gatewayUrl = `wss://gateway.discord.gg/?v=${this.version}&encoding=json`;
+    }
+    async identify() {
+        this.send({
+            op: 2,
+            d: {
+                token: this.token,
+                intents: this.intents,
+                properties: {
+                    $os: process.platform
+                },
+                presence: this.presence
+            }
+        });
+    }
+    async connect(token) {
+        this.rest = new RestClient(token, {
+            version: this.version
+        });
+
+        await this.rest.get('/users/@me')
+            .then(res => {
+                if (res?.message) {
+                    throw new Error(res.message);
+                }
+
+                this.token = token;
+                this.user = res;
+            });
 
         this.ws = new WebSocket(this.gatewayUrl);
 
@@ -34,30 +61,17 @@ class WebSocketClient extends EventEmitter {
         });
 
         this.ws.on('error', error => {
-            throw new Error(error);
+            throw new Error(`WebSocket error: ${error.message}`)
         });
 
         this.ws.once('close', (code, reason) => {
-            throw new Error(`WebSocket closed: ${code}`);
-        });
-    }
-    async identify() {
-        await this.send({
-            op: 2,
-            d: {
-                token: this.token,
-                intents: this.intents,
-                properties: {
-                    $os: process.platform
-                },
-                presence: this.presence
-            }
+            throw new Error(`WebSocket closed: ${reason.toString() || code}`);
         });
     }
     async send(data) {
         this.ws.send(JSON.stringify(data));
     }
-    async handleMessage(data) {
+    handleMessage(data) {
         const message = JSON.parse(data);
 
         switch (message.op) {
@@ -70,8 +84,8 @@ class WebSocketClient extends EventEmitter {
                 throw new Error('Invalid session!');
             }
             case 10: {
-                this.heartbeatInterval = setInterval(async () => {
-                    await this.send({
+                this.heartbeatInterval = setInterval(() => {
+                    this.send({
                         op: 1,
                         d: null
                     });
@@ -131,4 +145,4 @@ class WebSocketClient extends EventEmitter {
     }
 }
 
-module.exports = WebSocketClient;
+export default WebSocketClient;

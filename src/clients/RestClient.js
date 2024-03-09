@@ -1,7 +1,7 @@
 class RestClient {
     /**
-     * @param {string} options.token - The token to authenticate with the Discord API
-     * @param {number} options.version - The version of the Discord API to use, default is 10
+     * @param {string} token - The token to authenticate with the Discord API
+     * @param {number} version - The version of the Discord API to use, default is 10
      * @example
      * const RestClient = require('./index.js');
      * 
@@ -9,7 +9,7 @@ class RestClient {
      *     token: 'token here'
      * });
      */
-    constructor({ token, version = 10 }) {
+    constructor(token, { version = 10 }) {
         this.token = token;
         this.version = version;
     }
@@ -92,4 +92,4 @@ class RestClient {
     }
 }
 
-module.exports = RestClient;
+export default RestClient;

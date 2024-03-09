@@ -20,4 +20,4 @@ const Intents = {
     AutoModerationExecution: 1 << 21,
 }
 
-module.exports = Intents;
+export default Intents;
