@@ -1,32 +1,29 @@
-const {
-    WebSocketClient,
-    RestClient, 
+import {
+    WebSocketClient,    
     Events,
     Intents
-} = require('../index.js');
-
-const token = 'bot token';
+} from '../index.js';
 
 const ws = new WebSocketClient({
-    token: token,
-    intents: [Intents.GuildMessages, Intents.MessageContent]
-});
-
-const REST = new RestClient({
-    token: token
+    intents: [
+        Intents.GuildMessages,
+        Intents.MessageContent
+    ]
 });
 
 ws.on(Events.MessageCreate, message => {
     if (message.author.bot) return;
     
-    if (message.content === '!ping') {
-        REST.post(`/channels/${message.channel_id}/messages`, {
+    if (message.content.toLowerCase() === '!ping') {
+        ws.rest.post(`/channels/${message.channel_id}/messages`, {
             content: 'Pong!',
             message_reference: {
                 message_id: message.id,
                 guild_id: message.guild_id,
                 fail_if_not_exists: true
             }
-        }).catch(console.error);
+        });
     }
 });
+
+ws.connect('bot token');

@@ -1,6 +1,6 @@
-const {
+import {
     WebhookClient
-} = require('../index.js');
+} from '../index.js';
 
 const client = new WebhookClient({
     url: 'webhook url'
